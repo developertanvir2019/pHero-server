@@ -1,7 +1,7 @@
 const { MongoClient, ObjectId } = require('mongodb');
 const express = require('express');
-
 const cors = require('cors');
+const stripe = require("stripe")('sk_test_51M6AoIBSIlSsQgf2N7eHeJzPmd4aBzcD7V3VIUoqndAjtI7N4MN9x9RKVVabWfL9dRz87r842cRduHEsquEZmyQ500uVhrMSIE');
 const port = process.env.PORT || 5000;
 
 const app = express();
@@ -87,6 +87,29 @@ async function run() {
             const course = await courseCollection.findOne(query)
             res.send(course)
         });
+
+        app.post('/create-payment-intent', async (req, res) => {
+            try {
+                const premium = req.body;
+                const price = premium.price;
+                const amount = price * 100;
+
+                const paymentIntent = await stripe.paymentIntents.create({
+                    currency: "usd",
+                    amount: amount,
+                    "payment_method_types": [
+                        "card"
+                    ]
+                });
+                res.send({
+                    clientSecret: paymentIntent.client_secret,
+                });
+            } catch (error) {
+                console.log(error.message);
+            }
+        })
+
+
 
 
     }
